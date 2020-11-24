@@ -31,5 +31,5 @@ jobs:
           tags: ${{env.tag}}
           context: ./${{ matrix.repo }}
           file: ./${{ matrix.repo }}/Dockerfile
-          cache-from: type=registry,ref=${{env.tag}}
-          cache-to: type=inline
+          # cache-from: type=registry,ref=${{env.tag}}
+          # cache-to: type=inline
