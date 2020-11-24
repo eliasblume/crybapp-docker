@@ -13,23 +13,20 @@ jobs:
       matrix:
         repo: [api, web, portals, portal, janus-docker]
     steps:
-      - 
-        uses: actions/checkout@master
+      - uses: actions/checkout@master
         with:
           repository: crybapp/${{ matrix.repo }}
           path: ./${{ matrix.repo }}
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1 
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        uses: docker/build-push-action@v2.2.0
+      - uses: docker/build-push-action@v2.2.0
         with:
           push: push
-          tags: user/${{ matrix.repo }}:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.repo }}:latest
           context: ./${{ matrix.repo }}
           file: ./${{ matrix.repo }}/Dockerfile
-          cache-from: type=registry,ref=user/${{ matrix.repo }}:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.repo }}:latest
           cache-to: type=inline
