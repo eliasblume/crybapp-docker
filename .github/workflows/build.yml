@@ -39,7 +39,7 @@ jobs:
         env:
           tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{env.repo-name-addition}}${{ matrix.repo }}:latest
         with:
-          push: push
+          push: true
           tags: ${{env.tag}}
           context: .
           file: ./Dockerfile
