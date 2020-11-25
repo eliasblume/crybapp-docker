@@ -3,11 +3,12 @@ name: Build the Containers
 # Controls when the action will run.
 on:
   workflow_dispatch:
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     env:
-      # so the repo will be crybapp-docker-portals
+      # so the repo will be crybapp-docker-portals !! dont forget to replace
       repo-name-addition: crybapp-docker-
     runs-on: ubuntu-latest
     strategy:
@@ -25,6 +26,17 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: fix janus-docker
+        if: ${{ matrix.repo == 'janus-docker'}}
+        working-directory: ./janus-docker
+        run: |
+          mv configs/janus.jcfg.example janus.jcfg
+          mv configs/janus.transport.http.jcfg.example janus.transport.http.jcfg
+          mv configs/janus.plugin.streaming.jcfg.example janus.plugin.streaming.jcfg
+          sed -i '/^#.* admin_key /s/^#//' janus.plugin.streaming.jcfg
+          cat janus.plugin.streaming.jcfg
+
       - uses: docker/build-push-action@v2.2.0
         env:
           tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{env.repo-name-addition}}${{ matrix.repo }}:latest
