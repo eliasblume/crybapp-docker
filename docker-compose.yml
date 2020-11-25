@@ -1,0 +1,184 @@
+version: 3
+ !! incomplete !! I will continue soon
+services:
+  api:
+    image: eliasblume/crybapp-docker-api
+    restart: always
+    environment:
+      NODE_ENV: production
+      # Port which @cryb/api should listen on
+      PORT: 4000
+      # The JWT key used to encrypt/decrypt tokens used for user authentication
+      JWT_KEY: bigcrybfandocker
+      # The base REST endpoint that is used to talk to @cryb/portals
+      PORTALS_API_URL: http://localhost:5000
+      # This should the same secure key in @cryb/portals/.env under 'API_KEY'
+      PORTALS_API_KEY: api-portals-key
+      # The base WS endpoint that is used to talk to @cryb/aperture which is sent to the client via WS once the stream is ready
+      APERTURE_WS_URL: ws://localhost:9001
+      # This should be the same secure key in @cryb/aperture/.env under 'APERTURE_KEY'
+      APERTURE_WS_KEY: api-aperture-key
+      # Optional: the base URL of @cryb/auth. This service usually runs on port 4500
+      # AUTH_BASE_URL: http://localhost:4500
+      # The URI used for connecting to the MongoDB database
+      MONGO_URI: mongodb://localhost:27017/cryb
+      # The URI used for connecting to Redis instance
+      REDIS_URI: redis://localhost:6379
+      # If you're using redis-ha on Kubernetes, set the URI for the Sentinel below
+      # Make sure to uncomment the below line and uncomment the REDIS_URI line above
+      # REDIS_SENTINELS:
+      # The Discord Developer Application credentials.
+      DISCORD_CLIENT_ID:  <Your client ID here>
+      DISCORD_CLIENT_SECRET: <Your client ID here>
+      DISCORD_CALLBACK_URL: https://YOURDOMAIN/auth/discord
+      # This should be a list of comma (,) separated Discord OAuth2 Redirect URLs
+      DISCORD_OAUTH_ORIGINS: https://YOURDOMAIN
+
+  web:
+    image: eliasblume/crybapp-docker-web
+    restart: always
+    environment:
+      # The environment the app is running in, either production or development
+      NODE_ENV: production
+      ######################################
+      #           Websocket URLs           #
+      ######################################
+      # The URL used to interact with the WebSocket server running on @cryb/api
+      API_WS_URL:  wss://YOURDOMAIN/apiws
+      ######################################
+      #             Remote URLs            #
+      ######################################
+      # The URL used to interact with the REST API running on @cryb/api
+      API_BASE_URL: https://YOURDOMAIN/api
+      # The URL that @cryb/web is being hosted on. Locally, this would be 'http://localhost:3000'
+      WEB_BASE_URL: https://YOURDOMAIN
+      ######################################
+      #               JSMPEG               #
+      ######################################
+      # (Note: Rates are in kb/s and should match with portal's)
+      #VIDEO_BITRATE: 1200
+      #AUDIO_BITRATE: 128
+      ######################################
+      #               Janus                #
+      ######################################
+      # ENABLE_JANUS controls which JS libraries the end user receives.
+      ENABLE_JANUS: true
+      # Controls the URL @cryb/web will go try to connect to for WebRTC negotiation
+      JANUS_URL: https://YOURDOMAIN/janus
+      #TURN Server (Optional)
+      #ENABLE_TURN: true
+      TURN_URL:
+      TURN_USERNAME:
+      TURN_PASSWORD:
+      ######################################
+      #              Branding              #
+      ######################################
+      #BRAND_NAME:
+      #BRAND_LANDING_VIDEO_ID:
+      #BRAND_GA_TRACKING_ID:
+      ######################################
+      #                MISC                #
+      ######################################
+      # The domain used while setting cookies. Locally, this would be 'localhost'. In production, this would be '.example.com'
+
+      # Important: you need that . in front of YOURDOMAIN
+      COOKIE_DOMAIN: .YOURDOMAIN
+      # Nuxt.js Defaults
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
+      # Optional: Show player's devtools - useful for debugging
+      # SHOW_PLAYER_DEVTOOLS: true
+      # Optional: link to local Borealis repository for @cryb/borealis development.
+      # BOREALIS_REPOSITORY:
+      # Dist files public path - useful if you want to use a CDN
+      # PUBLIC_PATH: /_cryb/
+      # Rendering mode - This should be set to 'ssr' for SSR, otherwise it'll use 'spa'.
+      # RENDER_MODE: spa
+
+  portals:
+    image: eliasblume/crybapp-docker-portals
+    restart: always
+    environment:
+      # The environment the app is running in, either production or development
+      NODE_ENV: production
+      # Port which @cryb/portals should listen on
+      PORT: 5000
+      # The base REST endpoint that is used to talk to @cryb/api
+      API_URL: http://localhost:4000
+      # This should the same secure key in @cryb/api/.env under 'PORTALS_API_KEY'
+      API_KEY: thinkingwithportals
+      # This should the same secure key in @cryb/portal/.env under 'PORTALS_KEY'
+      PORTAL_KEY: ilikeportals
+      # The URI used for connecting to the MongoDB database
+      MONGO_URI: mongodb://localhost:27017/cryb
+      # The URI used for connecting to Redis instance
+      REDIS_URI: redis://localhost:6379
+      # If you're using redis-ha on Kubernetes, set the URI for the Sentinel below
+      # Make sure to uncomment the below line and uncomment the REDIS_URI line above
+      # REDIS_SENTINELS:
+      # The driver that will handle the deployment of your portals
+      DRIVER: docker
+      # Optional: Docker socket path. Varies from system
+      DOCKER_SOCK: /var/run/docker.sock
+      # OR host and port. Requires manual configuration
+      # DOCKER_HOST: http://127.0.0.1
+      # DOCKER_PORT: 2375
+      # The Docker image ID the portals will be deployed with
+      DOCKER_IMAGE: cryb/portal
+      # Docker /dev/shm size to set (in MB)
+      DOCKER_SHM_SIZE: 1024
+      DOCKER_NETWORK: # :TODO add Net
+
+      # Optional: the DigitalOcean API token used for digitalocean.driver
+      # DO_API_TOKEN:
+      # The region used for portal deployments on DigitalOcean
+      # DO_REGION: nyc3
+      # The size the portals will be deployed with
+      # DO_SIZE: s-1vcpu-1gb
+      # The image name/ID portals will be deployed with
+      # Setup guide at https://gist.github.com/69/a60838a5d67807da574edcfd3193af64
+      # DO_IMAGE:
+
+      # Optional: the Hetzner Cloud API token used for hetznercloud.driver
+      # HETZNER_API_KEY:
+      # The Hetzner Cloud image ID used for portal creation.
+      # Setup guide at https://gist.github.com/69/a60838a5d67807da574edcfd3193af64
+      # HETZNER_IMAGE_ID:
+      # The zone ID your portals will be deployed in
+      # HETZNER_ZONE_ID: nbg1
+      # The server type your portals will be deployed with
+      # HETZNER_SERVER_TYPE: cx11
+
+      # Janus config for janus enabled instances
+      ENABLE_JANUS: true
+      JANUS_HOSTNAME: localhost
+      JANUS_STREAMING_ADMIN_KEY: supersecret
+      JANUS_PORT: 8088
+
+      # Optional: the JSON Google Application Credentials used for gcloud.driver
+      # GOOGLE_APPLICATION_CREDENTIALS:
+      # The Zone ID where to deploy the portal on
+      # GOOGLE_ZONE_ID: us-east1-b
+
+      # Optional: configuration for kubernetes.driver
+      # The URL of the registry the image for the portal is located at
+      # K8S_PORTAL_IMAGE_REGISTRY_URL:
+      # The name of the secret for pulling the image from the registry
+      # K8S_PORTAL_IMAGE_PULL_SECRET:
+
+      # The name of the secret for the container env variables
+      # K8S_PORTAL_ENV_SECRET:
+
+      # The requested CPU limit for the portal instance
+      # K8S_PORTAL_CPU_LIMIT:
+      # The requested memory limit for the portal instance
+      # K8S_PORTAL_MEMORY_LIMIT:
+      # The requested CPU for the portal instance
+      # K8S_PORTAL_CPU_REQUESTED:
+      # The requested memory for the portal instance
+      # K8S_PORTAL_MEMORY_REQUESTED:
+  janus:
+    image: eliasblume/crybapp-docker-janus-docker
+    restart: always
+    environment:
+
