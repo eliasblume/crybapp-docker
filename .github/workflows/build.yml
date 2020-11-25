@@ -22,10 +22,11 @@ jobs:
 
       - name: fix janus-docker
         if: ${{ matrix.repo == 'janus-docker'}}
+        working-directory: configs
         run: |
-          mv configs/janus.jcfg.example janus.jcfg
-          mv configs/janus.transport.http.jcfg.example janus.transport.http.jcfg
-          mv configs/janus.plugin.streaming.jcfg.example janus.plugin.streaming.jcfg
+          mv janus.jcfg.example janus.jcfg
+          mv janus.transport.http.jcfg.example janus.transport.http.jcfg
+          mv janus.plugin.streaming.jcfg.example janus.plugin.streaming.jcfg
           sed -i 's/#admin_key/admin_key/g' janus.plugin.streaming.jcfg
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
