@@ -1,0 +1,22 @@
+name: update dockerhub
+on:
+  workflow_dispatch:
+# Controls when the action will run.
+jobs:
+  build:
+    env:
+      # so the repo will be crybapp-docker-portals !! dont forget to replace
+      repo-name-addition: crybapp-docker-
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: [api, web, portals, portal, janus-docker]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/${{env.repo-name-addition}}${{ matrix.repo }}
+          readme-filepath: ./DOCKERHUB.md
