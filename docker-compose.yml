@@ -1,5 +1,5 @@
-version: 3
- !! incomplete !! I will continue soon
+version: "3"
+
 services:
   api:
     image: eliasblume/crybapp-docker-api
@@ -11,24 +11,24 @@ services:
       # The JWT key used to encrypt/decrypt tokens used for user authentication
       JWT_KEY: bigcrybfandocker
       # The base REST endpoint that is used to talk to @cryb/portals
-      PORTALS_API_URL: http://localhost:5000
+      PORTALS_API_URL: http://portals:5000
       # This should the same secure key in @cryb/portals/.env under 'API_KEY'
       PORTALS_API_KEY: api-portals-key
       # The base WS endpoint that is used to talk to @cryb/aperture which is sent to the client via WS once the stream is ready
-      APERTURE_WS_URL: ws://localhost:9001
+      APERTURE_WS_URL: ws://janus:9001
       # This should be the same secure key in @cryb/aperture/.env under 'APERTURE_KEY'
       APERTURE_WS_KEY: api-aperture-key
       # Optional: the base URL of @cryb/auth. This service usually runs on port 4500
       # AUTH_BASE_URL: http://localhost:4500
       # The URI used for connecting to the MongoDB database
-      MONGO_URI: mongodb://localhost:27017/cryb
+      MONGO_URI: mongodb://mongo:27017/cryb
       # The URI used for connecting to Redis instance
-      REDIS_URI: redis://localhost:6379
+      REDIS_URI: redis://redis:6379
       # If you're using redis-ha on Kubernetes, set the URI for the Sentinel below
       # Make sure to uncomment the below line and uncomment the REDIS_URI line above
       # REDIS_SENTINELS:
       # The Discord Developer Application credentials.
-      DISCORD_CLIENT_ID:  <Your client ID here>
+      DISCORD_CLIENT_ID: <Your client ID here>
       DISCORD_CLIENT_SECRET: <Your client ID here>
       DISCORD_CALLBACK_URL: https://YOURDOMAIN/auth/discord
       # This should be a list of comma (,) separated Discord OAuth2 Redirect URLs
@@ -44,7 +44,7 @@ services:
       #           Websocket URLs           #
       ######################################
       # The URL used to interact with the WebSocket server running on @cryb/api
-      API_WS_URL:  wss://YOURDOMAIN/apiws
+      API_WS_URL: wss://YOURDOMAIN/apiws
       ######################################
       #             Remote URLs            #
       ######################################
@@ -62,7 +62,7 @@ services:
       #               Janus                #
       ######################################
       # ENABLE_JANUS controls which JS libraries the end user receives.
-      ENABLE_JANUS: true
+      ENABLE_JANUS:
       # Controls the URL @cryb/web will go try to connect to for WebRTC negotiation
       JANUS_URL: https://YOURDOMAIN/janus
       #TURN Server (Optional)
@@ -104,15 +104,15 @@ services:
       # Port which @cryb/portals should listen on
       PORT: 5000
       # The base REST endpoint that is used to talk to @cryb/api
-      API_URL: http://localhost:4000
+      API_URL: http://api:4000
       # This should the same secure key in @cryb/api/.env under 'PORTALS_API_KEY'
       API_KEY: thinkingwithportals
       # This should the same secure key in @cryb/portal/.env under 'PORTALS_KEY'
       PORTAL_KEY: ilikeportals
       # The URI used for connecting to the MongoDB database
-      MONGO_URI: mongodb://localhost:27017/cryb
+      MONGO_URI: mongodb://mongo:27017/cryb
       # The URI used for connecting to Redis instance
-      REDIS_URI: redis://localhost:6379
+      REDIS_URI: redis://redis:6379
       # If you're using redis-ha on Kubernetes, set the URI for the Sentinel below
       # Make sure to uncomment the below line and uncomment the REDIS_URI line above
       # REDIS_SENTINELS:
@@ -150,7 +150,7 @@ services:
       # HETZNER_SERVER_TYPE: cx11
 
       # Janus config for janus enabled instances
-      ENABLE_JANUS: true
+      ENABLE_JANUS:
       JANUS_HOSTNAME: localhost
       JANUS_STREAMING_ADMIN_KEY: supersecret
       JANUS_PORT: 8088
@@ -180,5 +180,56 @@ services:
   janus:
     image: eliasblume/crybapp-docker-janus-docker
     restart: always
-    environment:
+    # set password @ ./janus-config/janus.plugin.streaming.jcfg
+    volumes:
+      - ./janus-config:/usr/local/etc/janus
 
+  portal:
+    image: eliasblume/crybapp-docker-portal
+    restart: always
+    environment:
+      NODE_ENV: production
+      # The base REST endpoint that is used to talk to @cryb/portals
+      PORTALS_WS_URL: ws://192.168.0.1:5000
+      # This should the same secure key in @cryb/portals/.env under 'PORTAL_KEY'
+      PORTAL_KEY: ilikeportals
+
+      ## These arguments are ignored if you have Janus enabled in @cryb/portals
+      # The URL of @cryb/aperture streaming that ffmpeg should stream to. This should be :9000 on @cryb/aperture.
+      STREAMING_URL: 192.168.0.1
+      # This should the same secure key in @cryb/aperture/.env under 'STREAMING_KEY'. Not needed in Janus.
+      STREAMING_KEY: portal-streaming-key
+
+      # The Display services like Chromium and ffmpeg/gstreamer will use
+      DISPLAY: :100
+      # The width of the video stream in px
+      VIDEO_WIDTH: 1280
+      # The height of the video stream in px
+      VIDEO_HEIGHT: 720
+      # The bitrate of the video stream in bits
+      VIDEO_BITRATE: 1200000
+      # The Frames Per Second of the video stream (the lower it is, the higher performance is)
+      VIDEO_FPS: 30
+      # Switch to false if you want to disable audio support (could result in better performance)
+      AUDIO_ENABLED:
+      # The bitrate of the audio stream in bits
+      AUDIO_BITRATE: 128000
+
+      # Used to configure Chromium Dark Mode
+      IS_CHROMIUM_DARK_MODE:
+
+      # URL that will be used on first start
+      STARTUP_URL: https://www.google.com
+
+  redis:
+    image: redis
+    restart: always
+
+  mongo:
+    restart: always
+    image: mongo
+    volumes:
+      - mongodata:/data/db
+
+volumes:
+  mongodata:
